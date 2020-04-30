@@ -4,16 +4,19 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    //Controller Input
     public KeyCode left;
     public KeyCode right;
     public KeyCode jump;
-    public KeyCode attack;
+    public KeyCode meleeAttack;
+    public KeyCode rangedAttack;
 
     //Start() Variables
     private Rigidbody2D rb;
     private Animator anim;
     private Collider2D coll;
-    //FSM
+
+    //Finite State Machine
     private enum State {idle, running, jumping, falling, hurt} 
     private State state = State.idle;
 
@@ -22,6 +25,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 10f;
 
+    bool facingRight;
 
     //PLAYER 1 VARIABLES
     //Melee Attack Variables
@@ -32,6 +36,13 @@ public class PlayerController : MonoBehaviour
     private float attackRate = 2f;
     float nextAttackTime = 0f;
 
+    //PLAYER 2 VARIABLES
+    //Ranged Attack Variables
+    public GameObject projectileToRight;
+    public GameObject projectileToLeft;
+    public Transform rangedAttackPoint;
+    private float timeBtwShots;
+    public float startTimeBtwShots;
 
     void Start()
     {
@@ -53,6 +64,7 @@ public class PlayerController : MonoBehaviour
         anim.SetInteger("state", (int)state);//sets animation based on enumerator state
 
         MeleeAttack();
+        RangedAttack();
     }
 
     private void Movement()
@@ -63,12 +75,14 @@ public class PlayerController : MonoBehaviour
         {
             rb.velocity = new Vector2(-moveSpeed, rb.velocity.y);
             transform.localScale = new Vector2(-1, 1);
+            facingRight = false;
         }
         //Moving Right
         else if (Input.GetKey(right))
         {
             rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
             transform.localScale = new Vector2(1, 1);
+            facingRight = true;
         }
 
         //Jumping
@@ -118,7 +132,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Time.time >= nextAttackTime)
         {
-            if (Input.GetKeyDown(attack))
+            if (Input.GetKeyDown(meleeAttack))
             {
                 //Play Attack Animation
                 anim.SetTrigger("MeleeAttack");
@@ -137,8 +151,8 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
-    private void OnDrawGizmosSelected()
+    
+    private void OnDrawGizmosSelected() //Circle Melee Attack Point
     {
         if (meleeAttackPoint == null)
             return;
@@ -146,4 +160,29 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawWireSphere(meleeAttackPoint.position, attackRange);
     }
 
+    private void RangedAttack()
+    {
+        if(timeBtwShots <= 0)
+        {
+            if (Input.GetKeyDown(rangedAttack))
+            {
+                anim.SetTrigger("RangedAttack");
+                if (facingRight)
+                {
+                    Instantiate(projectileToRight, rangedAttackPoint.position, Quaternion.identity);
+                    timeBtwShots = startTimeBtwShots;
+                }
+                else
+                {
+                    Instantiate(projectileToLeft, rangedAttackPoint.position, Quaternion.identity);
+                    timeBtwShots = startTimeBtwShots;
+                }
+            }
+        }
+        
+        else
+        {
+            timeBtwShots -= Time.deltaTime;
+        }
+    }
 }
