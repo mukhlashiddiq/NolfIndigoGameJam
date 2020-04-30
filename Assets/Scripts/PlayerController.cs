@@ -25,10 +25,10 @@ public class PlayerController : MonoBehaviour
 
     //PLAYER 1 VARIABLES
     //Melee Attack Variables
-    //[SerializeField] private LayerMask enemyLayers;
-    //[SerializeField] private Transform meleeAttackPoint;
+    [SerializeField] private LayerMask enemyLayers;
+    [SerializeField] private Transform meleeAttackPoint;
     [SerializeField] private float attackRange = 0.5f;
-    //private float attackDamage = 50f;
+    private float attackDamage = 35f;
     private float attackRate = 2f;
     float nextAttackTime = 0f;
 
@@ -116,27 +116,34 @@ public class PlayerController : MonoBehaviour
 
     private void MeleeAttack()
     {
-    //    if (Time.time >= nextAttackTime)
-       // {
+        if (Time.time >= nextAttackTime)
+        {
             if (Input.GetKeyDown(attack))
             {
                 //Play Attack Animation
                 anim.SetTrigger("MeleeAttack");
 
                 //AttackSpeed
-                //nextAttackTime = Time.time + 1f / attackRate;
+                nextAttackTime = Time.time + 1f / attackRate;
 
                 //Detect Enemies in Range of Attack
-                //Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(meleeAttackPoint.position, attackRange, enemyLayers);
+                Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(meleeAttackPoint.position, attackRange, enemyLayers);
 
                 //Damage Them
-                //foreach (Collider2D enemy in hitEnemies)
-                //{
-                  //  enemy.GetComponent<Enemy>().TakeDamage(attackDamage);
-               // }
+                foreach (Collider2D enemy in hitEnemies)
+                {
+                    enemy.GetComponent<Enemy>().TakeDamage(attackDamage);
+                }
             }
-        //}
+        }
     }
 
+    private void OnDrawGizmosSelected()
+    {
+        if (meleeAttackPoint == null)
+            return;
+
+        Gizmos.DrawWireSphere(meleeAttackPoint.position, attackRange);
+    }
 
 }
